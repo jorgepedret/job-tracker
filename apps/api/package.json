@@ -1,0 +1,23 @@
+{
+  "name": "job-tracker-api",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "seed": "tsx prisma/seeds.ts",
+    "prisma": "prisma"
+  },
+  "prisma": {
+    "seed": "pnpm seed"
+  },
+  "dependencies": {
+    "@prisma/client": "latest",
+    "express": "^4.19.2",
+    "zod": "^3.23.8",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "prisma": "latest",
+    "tsx": "^4.1.0",
+    "typescript": "^5.4.0"
+  }
+}

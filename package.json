@@ -1,0 +1,11 @@
+{
+  "name": "job-tracker",
+  "private": true,
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "dev": "concurrently -n api,web -c green,blue \"pnpm --filter job-tracker-api dev\" \"pnpm --filter job-tracker-web dev\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
+  }
+}
