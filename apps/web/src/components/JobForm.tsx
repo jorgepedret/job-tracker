@@ -1,36 +1,38 @@
 import { useEffect, useState } from "react";
+import { createJob, getCompanies } from "../lib/api";
+import { useQueryClient } from "@tanstack/react-query";
 
-export default function JobForm() {
+export default function JobForm(){
+  const qc = useQueryClient();
   const [companies, setCompanies] = useState<any[]>([]);
   const [title, setTitle] = useState("");
   const [companyId, setCompanyId] = useState<number | "">("");
 
   useEffect(() => {
-    fetch(import.meta.env.VITE_API_URL + "/api/companies")
-      .then(r => r.json())
-      .then(setCompanies);
+    getCompanies().then(setCompanies).catch(console.error);
   }, []);
 
-  async function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent){
     e.preventDefault();
-    await fetch(import.meta.env.VITE_API_URL + "/api/jobs", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, companyId: Number(companyId) }),
-    });
+    if(!title || !companyId) return;
+    await createJob({ title, companyId: Number(companyId) });
     setTitle("");
     setCompanyId("");
-    // If using React Query, invalidate ["jobs"] here
+    qc.invalidateQueries({ queryKey: ["jobs"] });
   }
 
   return (
     <form onSubmit={submit} style={{ display: "flex", gap: 8, marginBottom: 16 }}>
-      <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Job title" required />
-      <select value={companyId} onChange={(e) => setCompanyId(Number(e.target.value))} required>
+      <input
+        placeholder="Job title"
+        value={title}
+        onChange={(e)=>setTitle(e.target.value)}
+      />
+      <select value={companyId} onChange={(e)=>setCompanyId(Number(e.target.value))}>
         <option value="">Select company</option>
-        {companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+        {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
       </select>
-      <button type="submit">Create</button>
+      <button type="submit">Add</button>
     </form>
   );
 }

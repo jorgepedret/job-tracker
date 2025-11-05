@@ -1,59 +1,44 @@
+// apps/api/prisma/seeds.ts
 import { PrismaClient } from "@prisma/client";
-
 const prisma = new PrismaClient();
 
 async function main() {
-  // Reset tables (order matters)
+  // Reset (order matters)
   await prisma.application.deleteMany({});
   await prisma.job.deleteMany({});
   await prisma.company.deleteMany({});
 
   // Companies
-  await prisma.company.createMany({
-    data: [
-      { name: "Plexxis" },
-      { name: "NextCo" },
-      { name: "Acme" },
-      { name: "BuildRight" }
-    ]
-  });
-
-  // Ensure at least one company for jobs
-  const plxx = (await prisma.company.findFirst({ where: { name: "Plexxis" } }))
-    ?? (await prisma.company.findFirst())!;
+  const [techPlus, greenRoots, brightWays] = await Promise.all([
+    prisma.company.create({ data: { name: "TechnicalitiesPlus" } }),
+    prisma.company.create({ data: { name: "GreenRoots Collective" } }),
+    prisma.company.create({ data: { name: "BrightWays Foundation" } }),
+  ]);
 
   // Jobs
-  const job = await prisma.job.create({
-    data: { title: "Jr. Developer", companyId: plxx.id }
+  const wpDev = await prisma.job.create({
+    data: { title: "Full Stack Web Developer", companyId: techPlus.id },
+  });
+  const commMgr = await prisma.job.create({
+    data: { title: "Community & Events Manager", companyId: brightWays.id },
+  });
+  const emailMgr = await prisma.job.create({
+    data: { title: "Email Marketing Manager", companyId: greenRoots.id },
   });
 
   // Applications
-  const statuses = ["applied", "phone", "onsite", "offer", "rejected"] as const;
-  for (let i = 0; i < 12; i++) {
-    await prisma.application.create({
-      data: {
-        jobId: job.id,
-        status: statuses[i % statuses.length],
-        notes: i % 3 === 0 ? "Auto-seeded note" : undefined,
-        appliedAt: new Date(Date.now() - i * 24 * 60 * 60 * 1000)
-      }
-    });
-  }
-
-  // Another job
-  const anyCompany = await prisma.company.findFirst();
-  if (anyCompany) {
-    await prisma.job.create({
-      data: { title: "Frontend Developer", companyId: anyCompany.id }
-    });
-  }
+  await prisma.application.createMany({
+    data: [
+      { jobId: wpDev.id, status: "applied", notes: "Tailored resume v2" },
+      { jobId: wpDev.id, status: "phone", notes: "Recruiter screen scheduled" },
+      { jobId: commMgr.id, status: "applied" },
+      { jobId: emailMgr.id, status: "rejected", notes: "Mismatch on schedule" },
+    ],
+  });
 }
 
-main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+main().then(() => prisma.$disconnect()).catch(async (e) => {
+  console.error(e);
+  await prisma.$disconnect();
+  process.exit(1);
+});
