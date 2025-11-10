@@ -20,7 +20,7 @@ yarn-error.log*
 
 # Environment files
 .env
-.env.*
+.env
 apps/*/.env
 apps/*/.env.*
 
